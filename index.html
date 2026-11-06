@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wi-Fi Vault</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 15px;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #0078D7;
+            font-size: 20px;
+            margin-top: 0;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            background: #0078D7;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        button:active {
+            background: #005fa3;
+        }
+        .wifi-list {
+            margin-top: 20px;
+        }
+        .wifi-card {
+            background: #fafafa;
+            border: 1px solid #e1e4e8;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .wifi-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .wifi-card p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+            font-family: monospace;
+        }
+        .btn-delete {
+            background: #d9534f;
+            width: auto;
+            padding: 4px 8px;
+            font-size: 12px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .btn-copy {
+            background: #5cb85c;
+            width: auto;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Wi-Fi Password Vault</h1>
+        <p style="font-size: 13px; color: #666; text-align: center;">Save your network keys so you never lose them.</p>
+
+        <div class="form-group">
+            <label for="ssid">Network Name (SSID)</label>
+            <input type="text" id="ssid" placeholder="e.g. Home_WiFi_5G">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="text" id="password" placeholder="e.g. secret1234">
+        </div>
+
+        <button onclick="saveWiFi()">Save Wi-Fi</button>
+
+        <div class="wifi-list" id="wifiList">
+            <!-- Saved networks will show here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadWiFi);
+
+        function saveWiFi() {
+            const ssid = document.getElementById('ssid').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!ssid || !password) {
+                alert("Please fill in both fields.");
+                return;
+            }
+
+            let wifiData = JSON.parse(localStorage.getItem('wifi_vault')) || [];
+            wifiData.push({ ssid, password });
+            localStorage.setItem('wifi_vault', JSON.stringify(wifiData));
+
+            document.getElementById('ssid').value = '';
+            document.getElementById('password').value = '';
+            loadWiFi();
+        }
+
+        function loadWiFi() {
+            const wifiList = document.getElementById('wifiList');
+            wifiList.innerHTML = '';
+
+            let wifiData = JSON.parse(localStorage.getItem('wifi_vault')) || [];
+
+            if (wifiData.length === 0) {
+                wifiList.innerHTML = '<p style="text-align:center; color:#888; font-size:13px;">No saved Wi-Fi networks yet.</p>';
+                return;
+            }
+
+            wifiData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'wifi-card';
+                card.innerHTML = `
+                    <h3>${item.ssid}</h3>
+                    <p>Password: <strong>${item.password}</strong></p>
+                    <button class="btn-copy" onclick="copyPassword('${item.password}')">Copy Password</button>
+                    <button class="btn-delete" onclick="deleteWiFi(${index})">Delete</button>
+                `;
+                wifiList.appendChild(card);
+            });
+        }
+
+        function copyPassword(pass) {
+            navigator.clipboard.writeText(pass).then(() => {
+                alert("Password copied to clipboard!");
+            });
+        }
+
+        function deleteWiFi(index) {
+            let wifiData = JSON.parse(localStorage.getItem('wifi_vault')) || [];
+            wifiData.splice(index, 1);
+            localStorage.setItem('wifi_vault', JSON.stringify(wifiData));
+            loadWiFi();
+        }
+    </script>
+</body>
+</html>
